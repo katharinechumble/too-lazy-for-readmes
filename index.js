@@ -2,12 +2,11 @@
 const fs = require('fs');
 const util = require("util");
 const inquirer = require('inquirer');
-const generateMarkdown = require('../utils/generateMarkdown.js');
+const generateMarkdown = require('./utils/generateMarkdown.js');
 
 // begin inquirer prompts for userAnswers
 
-const promptUser = () => {
-return inquirer.prompt(
+const questions =
  [{
     type: "input",
     name: "title",
@@ -24,7 +23,7 @@ return inquirer.prompt(
   {
     type: "input",
     name: "authors",
-    message: "Who contributed this project? (Required)",
+    message: "Who contributed to this project? (Required)",
     validate: nameInput => {
         if (nameInput) {
           return true;
@@ -70,6 +69,11 @@ return inquirer.prompt(
   },
   {
     type: "input",
+    message: "Describe what to do if user has issues.",
+    name: "issues"
+  },
+  {
+    type: "input",
     message: "Enter your GitHub Username. (Required)",
     name: "username",
     validate: descriptionInput => {
@@ -94,18 +98,17 @@ return inquirer.prompt(
         }
       }
   }
- ]);
-}
+ ]
 
-function writeToFile(fileName, data) {
-  fs.writeFile(README.md, data, err => {
-    if (err) {
-      return console.log(err);
-    } else {
-      console.log("Your README.md has been successfully generated!");
-    }
-  });
-}
+ function writeToFile(fileName, data) {
+   fs.writeFile(fileName, data, err => {
+     if (err) {
+       return console.log(err);
+     } else {
+       console.log("Your Readme has been successfully generated!")
+     }
+   });
+ }
 
 const writeFileAsync = util.promisify(writeToFile);
 
@@ -113,14 +116,19 @@ const writeFileAsync = util.promisify(writeToFile);
 async function init() {
   try {
     // prompt inquirer questions
-    const userAnswers = await promptUser();
+    const userAnswers = await inquirer.prompt(questions);
+    console.log(userAnswers);
+
+    //pass userAnswers through to generate Readme
     const generateReadme = generateMarkdown(userAnswers);
-    // write new Readme.md to directory
-    await writeFileAsync('./README.md', generateReadme);
-    console.log ('Successfully updated README.md');
-  } catch(err) {
-    console.log(err);
-  }
+    console.log(generateReadme);
+
+    //write to file
+
+    await writeFileAsync('README.md', generateReadme);
+} catch (err) {
+  console.log(err);
 }
+};
 
 init();
