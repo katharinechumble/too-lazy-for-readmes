@@ -1,7 +1,10 @@
+// packages and modules
 const fs = require('fs');
-const utils = require("utils");
+const util = require("util");
 const inquirer = require('inquirer');
-const generateReadme = require('../utils/generateMarkdown.js');
+const generateMarkdown = require('../utils/generateMarkdown.js');
+
+// begin inquirer prompts for userAnswers
 
 const promptUser = () => {
 return inquirer.prompt(
@@ -91,29 +94,33 @@ return inquirer.prompt(
         }
       }
   }
- ])
+ ]);
+}
 
-.then(
-function(data) {
-const template = `
-## ${data.title}
-
-## Contributing
-${data.authors}
-
-## Description
-${data.description}
-`;
-
-  
-  fs.generateReadme(README.md, template, function(err) {
-
+function writeToFile(fileName, data) {
+  fs.writeFile(README.md, data, err => {
     if (err) {
       return console.log(err);
+    } else {
+      console.log("Your README.md has been successfully generated!");
     }
-
-    console.log("Success!");
-
   });
-});
 }
+
+const writeFileAsync = util.promisify(writeToFile);
+
+// main function
+async function init() {
+  try {
+    // prompt inquirer questions
+    const userAnswers = await promptUser();
+    const generateReadme = generateMarkdown(userAnswers);
+    // write new Readme.md to directory
+    await writeFileAsync('./README.md', generateReadme);
+    console.log ('Successfully updated README.md');
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+init();
